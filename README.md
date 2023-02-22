@@ -1,15 +1,47 @@
+<?code-excerpt path-base="excerpts/packages/url_launcher_example"?>
+
 # wifi_scan_windows
 
-Flutter plugin to scan for nearby visible WiFi access points in windows
+[![pub package](https://img.shields.io/pub/v/wifi_scan_windows.svg)](https://pub.dev/packages/wifi_scan_windows)
 
-## Getting Started
+This plugin allows Flutter apps to scan for nearby visible WiFi access points in Windows.
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/developing-packages/),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+|             | Windows     |
+|-------------|-------------|
+| **Support** | Windows 10+ |
 
-For help getting started with Flutter development, view the
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Usage
 
+To use this plugin, add `wifi_scan_windows` as a [dependency in your pubspec.yaml file](https://flutter.dev/platform-plugins/).
+
+### Start scan
+You can trigger full WiFi scan with `performScan` API, as shown below:
+```dart
+void _scan() async {
+  WifiScanWindows _wifiScanWindowsPlugin = WifiScanWindows();
+  // start full scan async-ly
+  _wifiScanWindowsPlugin.performScan((data) async {
+    // scan completed 
+  }, (error) {
+    // scan completed with error
+  });
+}
+```
+
+### Get scanned results
+You can get scanned results with `getAvailableNetworks` API, as shown below:
+> **_NOTE:_**  This API can also be used separately which retrieves the list of available networks on a wireless LAN interface.
+```dart
+void _getAvailableNetworks() async {
+  // get scanned results
+  List<AvailableNetwork>? result = await _wifiScanWindowsPlugin.getAvailableNetworks();
+  
+}
+```
+
+## Issues and feedback
+
+Please file WiFiFlutter specific issues, bugs, or feature requests in our [issue tracker][wf_issue].
+
+<!-- links -->
+[wf_issue]: https://github.com/LokieVikky/wifi_scan_windows/issues/new

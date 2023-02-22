@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-import 'dart:async';
+import 'dart:core';
 
-import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import 'package:wifi_scan_windows/available_network.dart';
 import 'package:wifi_scan_windows/wifi_scan_windows.dart';
 
@@ -17,8 +16,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final String _scannedNetworks = '';
-  final _wifiScanWindowsPlugin = WifiScanWindows();
+  List<AvailableNetwork> availableNetworks = [];
+  final WifiScanWindows _wifiScanWindowsPlugin = WifiScanWindows();
 
   @override
   void initState() {
@@ -36,23 +35,37 @@ class _MyAppState extends State<MyApp> {
                 onPressed: () async {
                   List<AvailableNetwork>? result =
                       await _wifiScanWindowsPlugin.getAvailableNetworks();
-                  print(result?.length);
+                  setState(() {
+                    availableNetworks = result ?? [];
+                  });
                 },
-                child: Text("Get networks")),
+                child: const Text("Get networks")),
           ],
         ),
         body: Column(
-          children: [Text(_scannedNetworks)],
+          children: [
+            Expanded(
+              child: ListView.builder(
+                itemCount: availableNetworks.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text('SSID: ${availableNetworks[index].ssid}'),
+                    subtitle: Text('RSSI: ${availableNetworks[index].rssi}'),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
         floatingActionButton: FloatingActionButton.extended(
             onPressed: () async {
               _wifiScanWindowsPlugin.performScan((data) async {
-                print("Scan Completed $data");
+                debugPrint("Scan Completed $data");
               }, (error) {
-                print(error);
+                debugPrint(error);
               });
             },
-            label: Text('Scan')),
+            label: const Text('Scan')),
       ),
     );
   }

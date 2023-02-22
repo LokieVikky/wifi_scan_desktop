@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wifi_scan_windows/wifi_scan_windows.dart';
 import 'package:wifi_scan_windows/wifi_scan_windows_platform_interface.dart';
 import 'package:wifi_scan_windows/wifi_scan_windows_method_channel.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';

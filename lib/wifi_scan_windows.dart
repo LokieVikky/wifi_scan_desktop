@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/services.dart';
 import 'package:wifi_scan_windows/available_network.dart';
 
 import 'wifi_scan_windows_platform_interface.dart';

@@ -1,7 +1,7 @@
 name: wifi_scan_windows
 description: Flutter plugin to scan for nearby visible WiFi access points in windows
 version: 0.0.1
-homepage:
+homepage: https://github.com/LokieVikky/wifi_scan_windows
 
 environment:
   sdk: '>=2.19.2 <3.0.0'

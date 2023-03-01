@@ -6,9 +6,9 @@
 
 #include "generated_plugin_registrant.h"
 
-#include <wifi_scan_windows/wifi_scan_windows_plugin_c_api.h>
+#include <wifi_scan_desktop/wifi_scan_desktop_plugin_c_api.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
-  WifiScanWindowsPluginCApiRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("WifiScanWindowsPluginCApi"));
+  WifiScanDesktopPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("WifiScanDesktopPluginCApi"));
 }

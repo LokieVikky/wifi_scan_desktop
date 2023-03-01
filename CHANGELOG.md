@@ -10,3 +10,9 @@
 
 - **DOCS**: Updated Package Licence
 
+## 0.0.4
+
+### New features
+
+- Added Support for macOS
+

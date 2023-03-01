@@ -1,8 +1,8 @@
 import 'dart:core';
 
 import 'package:flutter/material.dart';
-import 'package:wifi_scan_windows/available_network.dart';
-import 'package:wifi_scan_windows/wifi_scan_windows.dart';
+import 'package:wifi_scan_desktop/wifi_info.dart';
+import 'package:wifi_scan_desktop/wifi_scan_desktop.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,8 +16,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  List<AvailableNetwork> availableNetworks = [];
-  final WifiScanWindows _wifiScanWindowsPlugin = WifiScanWindows();
+  List<WifiInfo> availableNetworks = [];
+  final WifiScanDesktop _wifiScanWindowsPlugin = WifiScanDesktop();
 
   @override
   void initState() {
@@ -33,7 +33,7 @@ class _MyAppState extends State<MyApp> {
           actions: [
             ElevatedButton(
                 onPressed: () async {
-                  List<AvailableNetwork>? result =
+                  List<WifiInfo>? result =
                       await _wifiScanWindowsPlugin.getAvailableNetworks();
                   setState(() {
                     availableNetworks = result ?? [];

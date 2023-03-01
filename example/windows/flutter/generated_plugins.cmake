@@ -3,7 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  wifi_scan_windows
+  wifi_scan_desktop
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

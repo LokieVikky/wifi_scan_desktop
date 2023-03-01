@@ -192,13 +192,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
-  wifi_scan_windows:
+  wifi_scan_desktop:
     dependency: "direct main"
     description:
       path: ".."
       relative: true
     source: path
-    version: "0.0.1"
+    version: "0.0.3"
 sdks:
   dart: ">=2.19.2 <3.0.0"
   flutter: ">=2.5.0"

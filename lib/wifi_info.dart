@@ -1,4 +1,4 @@
-class AvailableNetwork{
+class WifiInfo {
   final String? authAlgorithm;
   final String? bssNetworkType;
   final bool? connectable;
@@ -12,7 +12,7 @@ class AvailableNetwork{
   final bool? securityEnabled;
   final int? signalQuality;
 
-  AvailableNetwork(
+  WifiInfo(
       this.authAlgorithm,
       this.bssNetworkType,
       this.connectable,
@@ -25,6 +25,4 @@ class AvailableNetwork{
       this.ssid,
       this.securityEnabled,
       this.signalQuality);
-
-
 }

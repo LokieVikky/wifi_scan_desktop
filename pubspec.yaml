@@ -1,6 +1,6 @@
-name: wifi_scan_windows
-description: Flutter plugin to scan for nearby visible WiFi access points in windows
-version: 0.0.3
+name: wifi_scan_desktop
+description: Flutter plugin to scan for nearby visible WiFi access points in windows and macosx
+version: 0.0.4
 homepage: https://github.com/LokieVikky/wifi_scan_windows
 
 environment:
@@ -35,7 +35,9 @@ flutter:
   plugin:
     platforms:
       windows:
-        pluginClass: WifiScanWindowsPluginCApi
+        pluginClass: WifiScanDesktopPluginCApi
+      macos:
+        pluginClass: WifiScanDesktopPlugin
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:

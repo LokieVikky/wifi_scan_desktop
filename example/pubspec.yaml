@@ -17,7 +17,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  wifi_scan_windows:
+  wifi_scan_desktop:
     # When depending on this package from a real application you should use:
     #   wifi_scan_windows: ^x.y.z
     # See https://dart.dev/tools/pub/dependencies#version-constraints

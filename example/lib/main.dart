@@ -17,7 +17,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   List<WifiInfo> availableNetworks = [];
-  final WifiScanDesktop _wifiScanWindowsPlugin = WifiScanDesktop();
+  final WifiScanDesktop _wifiScanDesktopPlugin = WifiScanDesktop();
 
   @override
   void initState() {
@@ -34,7 +34,7 @@ class _MyAppState extends State<MyApp> {
             ElevatedButton(
                 onPressed: () async {
                   List<WifiInfo>? result =
-                      await _wifiScanWindowsPlugin.getAvailableNetworks();
+                      await _wifiScanDesktopPlugin.getAvailableNetworks();
                   setState(() {
                     availableNetworks = result ?? [];
                   });
@@ -59,7 +59,7 @@ class _MyAppState extends State<MyApp> {
         ),
         floatingActionButton: FloatingActionButton.extended(
             onPressed: () async {
-              _wifiScanWindowsPlugin.performScan((data) async {
+              _wifiScanDesktopPlugin.performScan((data) async {
                 debugPrint("Scan Completed $data");
               }, (error) {
                 debugPrint(error);

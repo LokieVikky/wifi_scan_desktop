@@ -16,3 +16,7 @@
 
 - Added Support for macOS
 
+## 0.0.5
+
+- **DOCS**: Updated README.md
+

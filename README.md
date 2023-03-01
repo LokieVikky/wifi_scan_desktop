@@ -1,26 +1,22 @@
 <?code-excerpt path-base="excerpts/packages/url_launcher_example"?>
 
-# wifi_scan_windows
+# wifi_scan_desktop
 
-[![pub package](https://img.shields.io/pub/v/wifi_scan_windows.svg)](https://pub.dev/packages/wifi_scan_windows)
+[![pub package](https://img.shields.io/pub/v/wifi_scan_desktop.svg)](https://pub.dev/packages/wifi_scan_desktop)
 
-This plugin allows Flutter apps to scan for nearby visible WiFi access points in Windows.
-
-|             | Windows     |
-|-------------|-------------|
-| **Support** | Windows 10+ |
+This plugin allows Flutter apps to scan for nearby visible WiFi access points in Windows and macOS
 
 ## Usage
 
-To use this plugin, add `wifi_scan_windows` as a [dependency in your pubspec.yaml file](https://flutter.dev/platform-plugins/).
+To use this plugin, add `wifi_scan_desktop` as a [dependency in your pubspec.yaml file](https://flutter.dev/platform-plugins/).
 
 ### Start scan
 You can trigger full WiFi scan with `performScan` API, as shown below:
 ```dart
 void _scan() async {
-  WifiScanWindows _wifiScanWindowsPlugin = WifiScanWindows();
+   WifiScanDesktop _wifiScanDesktopPlugin = WifiScanDesktop();
   // start full scan async-ly
-  _wifiScanWindowsPlugin.performScan((data) async {
+   _wifiScanDesktopPlugin.performScan((data) async {
     // scan completed 
   }, (error) {
     // scan completed with error
@@ -34,7 +30,7 @@ You can get scanned results with `getAvailableNetworks` API, as shown below:
 ```dart
 void _getAvailableNetworks() async {
   // get scanned results
-  List<AvailableNetwork>? result = await _wifiScanWindowsPlugin.getAvailableNetworks();
+  List<AvailableNetwork>? result = await _wifiScanDesktopPlugin.getAvailableNetworks();
   
 }
 ```
@@ -44,4 +40,4 @@ void _getAvailableNetworks() async {
 Please file WiFiFlutter specific issues, bugs, or feature requests in our [issue tracker][wf_issue].
 
 <!-- links -->
-[wf_issue]: https://github.com/LokieVikky/wifi_scan_windows/issues/new
+[wf_issue]: https://github.com/LokieVikky/wifi_scan_desktop/issues/new

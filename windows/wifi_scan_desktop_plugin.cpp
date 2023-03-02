@@ -44,7 +44,7 @@ int iRSSI = 0;
 std::unique_ptr<flutter::EventSink<>> event_sink_;
 
 namespace wifi_scan_desktop {
-
+    // Scan Callback
     void FuncWlanAcmNotify(PWLAN_NOTIFICATION_DATA data, PVOID context)
     {
         if (data->NotificationCode == wlan_notification_acm_scan_complete)
@@ -67,6 +67,7 @@ namespace wifi_scan_desktop {
 		WlanFreeMemory(pIfList);
     }
 
+    // Converts wchar to string
     std::string wchar2string(wchar_t *str)
     {
         std::string mystring;
@@ -75,6 +76,7 @@ namespace wifi_scan_desktop {
         return mystring;
     }
 
+    // Return Cached Networks
     string getAvailableNetworks()
     {
         DWORD dw = WlanOpenHandle(dwMaxClient, NULL, &dwCurVersion, &hClient);
@@ -235,6 +237,7 @@ namespace wifi_scan_desktop {
         return network_list.dump();
     }
 
+    // Calling this will perform a new scan
     void scan()
     {
         DWORD dw = WlanOpenHandle(dwMaxClient, NULL, &dwCurVersion, &hClient);
@@ -313,17 +316,20 @@ void WifiScanDesktopPlugin::RegisterWithRegistrar(
         registrar->AddPlugin(std::move(plugin));
 }
 
+    // Stream handler functions
     void OnStreamListen(std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> &&events)
     {
         event_sink_ = std::move(events);
     }
 
+    // Stream handler functions
     void OnStreamCancel() { event_sink_ = nullptr; }
 
 WifiScanDesktopPlugin::WifiScanDesktopPlugin() {}
 
 WifiScanDesktopPlugin::~WifiScanDesktopPlugin() {}
 
+// Method channel that will will called from flutter
 void WifiScanDesktopPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue> &method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {

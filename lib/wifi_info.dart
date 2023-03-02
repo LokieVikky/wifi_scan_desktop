@@ -1,3 +1,4 @@
+// Model to store Scanned WifiInfo
 class WifiInfo {
   final String? authAlgorithm;
   final String? bssNetworkType;

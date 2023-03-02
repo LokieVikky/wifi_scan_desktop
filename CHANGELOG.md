@@ -20,3 +20,7 @@
 
 - **DOCS**: Updated README.md
 
+## 0.0.6
+
+- **BUGFIX**: Fixed Cmake Error in Windows
+

@@ -3,6 +3,7 @@ import FlutterMacOS
 import CoreWLAN
 import CoreLocation
 
+// Main Plugin Class
 public class WifiScanDesktopPlugin: NSObject, FlutterPlugin {
     
     private var scanHandler: WifiScanStreamHandler
@@ -11,7 +12,8 @@ public class WifiScanDesktopPlugin: NSObject, FlutterPlugin {
         self.scanHandler = scanHandler
         super.init()
     }
-    
+
+    // Event and Method Channels are registered here
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "get_available_networks", binaryMessenger: registrar.messenger)
         let eventChannel = FlutterEventChannel(name: "scan_callback", binaryMessenger: registrar.messenger)
@@ -20,7 +22,8 @@ public class WifiScanDesktopPlugin: NSObject, FlutterPlugin {
         registrar.addMethodCallDelegate(instance, channel: channel)
         eventChannel.setStreamHandler(scanHandler)
     }
-    
+
+    // Flutter method call
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         let scanner = try? WiFiScanner()
         switch call.method {
@@ -45,6 +48,7 @@ public class WifiScanDesktopPlugin: NSObject, FlutterPlugin {
     }
 }
 
+// Stream handler for scan callback
 class WifiScanStreamHandler: NSObject, FlutterStreamHandler {
 
     var eventSink: FlutterEventSink?
@@ -61,13 +65,14 @@ class WifiScanStreamHandler: NSObject, FlutterStreamHandler {
 
 }
 
-
+// Error descriptor
 enum ScanError: Error {
     case failedToGetWifiInterface
     case scanFailed
     case getCachedScanResultsFailed
 }
 
+// WifiScanner Class
 class WiFiScanner {
     let client: CWWiFiClient = CWWiFiClient.shared()
     var interface: CWInterface
@@ -79,7 +84,8 @@ class WiFiScanner {
         }
         self.interface = interface
     }
-    
+
+    // Calling this will perform a new scan
     func scan (name: String? = nil) throws -> Bool? {
         if (try? self.interface.scanForNetworks(withName: name)) != nil {
             return true
@@ -87,7 +93,8 @@ class WiFiScanner {
             throw ScanError.scanFailed
         }
     }
-    
+
+    // Calling this will scan and return the available networks
     func scanV2 (name: String? = nil) throws -> Array<WiFiInfo>? {
         if let networks = try? self.interface.scanForNetworks(withName: name) {
             var infos = [WiFiInfo]()
@@ -99,7 +106,8 @@ class WiFiScanner {
             throw ScanError.getCachedScanResultsFailed
         }
     }
-    
+
+    // Returns Cached scan results, can be called without performing scan
     func getCachedScanResults (name: String? = nil) throws -> String? {
         encoder.outputFormatting = .prettyPrinted
         do{
@@ -121,42 +129,9 @@ class WiFiScanner {
     
 }
 
+// Model to store the Wifi Infos
 struct WiFiInfo: Codable {
-    
-    //    // Do you want my password?
-    //    var SSID: String
-    //    // mac address
-    //    var bssid: String
-    //    // a, ac, b, g, n
-    //    var modes: String
-    //    // 2.4G: 1-14, 5G: TL;DR
-    //    var channel: String
-    //    // 2.4, 5GHz
-    //    var channel_band: String
-    //    // 20, 40, 80, 160MHz
-    //    var channel_bandwidth: String
-    //    // WPA...
-    //    var AuthAlgorithm: String
-    //    // dBm
-    //    var noise: String
-    //    // dBm
-    //    var rssi: String
-    //
-    //    var ssidData: String?
-    //
-    //    init (network: CWNetwork) {
-    //        self.SSID              = network.ssid ?? ""
-    //        self.ssidData          = String(decoding: network.ssidData!, as: UTF8.self)
-    //        self.bssid             = network.bssid ?? ""
-    //        self.channel           = network.wlanChannel?.channelNumber != nil ? "\(network.wlanChannel?.channelNumber)" : ""
-    //        self.channel_band      = gen_channel_band(cw_channel_band: network.wlanChannel?.channelBand)
-    //        self.modes             = gen_modes(network: network)
-    //        self.channel_bandwidth = gen_channel_bandwidth(cw_channel_width: network.wlanChannel?.channelWidth)
-    //        self.AuthAlgorithm     = gen_security(network: network)
-    //        self.noise             = String(network.noiseMeasurement) + " dBm"
-    //        self.rssi              = String(network.rssiValue) + " dBm"
-    //    }
-    
+
     var AuthAlgorithm: String?
     var BSSNetworkType: String?
     var Connectable: String?
@@ -189,6 +164,7 @@ struct WiFiInfo: Codable {
     
     
 }
+
 
 func gen_channel_bandwidth (cw_channel_width: CWChannelWidth?) -> String {
     if cw_channel_width == CWChannelWidth.width20MHz {
@@ -241,9 +217,7 @@ func gen_channel_band (cw_channel_band: CWChannelBand?) -> String {
 
 func gen_security (network: CWNetwork) -> String {
     var res = ""
-    
-    
-    // OMG so much...
+
     if network.supportsSecurity(CWSecurity.none) {
         res += "None/"
     }

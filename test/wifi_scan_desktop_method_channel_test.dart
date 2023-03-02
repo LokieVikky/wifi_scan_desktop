@@ -1,9 +1,9 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wifi_scan_desktop/wifi_scan_desktop_method_channel.dart';
+// import 'package:wifi_scan_desktop/wifi_scan_desktop_method_channel.dart';
 
 void main() {
-  MethodChannelWifiScanDesktop platform = MethodChannelWifiScanDesktop();
+  //MethodChannelWifiScanDesktop platform = MethodChannelWifiScanDesktop();
   const MethodChannel channel = MethodChannel('wifi_scan_desktop');
 
   TestWidgetsFlutterBinding.ensureInitialized();

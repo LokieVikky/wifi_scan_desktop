@@ -22,11 +22,13 @@ abstract class WifiScanDesktopPlatform extends PlatformInterface {
     _instance = instance;
   }
 
+  /// This will be used to throw error on other unsupported platforms
   Future<String?> getAvailableNetworks() {
     throw UnimplementedError(
         'getAvailableNetworks() has not been implemented.');
   }
 
+  /// This will be used to throw error on other unsupported platforms
   void performScan(
       Function(dynamic) onScanCompleted, Function(dynamic) onScanError) {
     throw UnimplementedError('performScan() has not been implemented.');

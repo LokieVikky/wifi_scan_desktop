@@ -12,7 +12,7 @@ class MethodChannelWifiScanDesktop extends WifiScanDesktopPlatform {
   @visibleForTesting
   static const EventChannel eventChannel = EventChannel('scan_callback');
 
-  // This will perform a new Scan
+  /// This will perform a new Scan
   @override
   void performScan(
       Function(dynamic) onScanCompleted, Function(dynamic) onScanError) {
@@ -26,7 +26,7 @@ class MethodChannelWifiScanDesktop extends WifiScanDesktopPlatform {
     }
   }
 
-  // Returns cached scan results, works even without performing scan
+  /// Returns cached scan results, works even without performing scan
   @override
   Future<String?> getAvailableNetworks() async {
     try {

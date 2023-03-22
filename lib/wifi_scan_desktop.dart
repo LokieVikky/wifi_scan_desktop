@@ -4,7 +4,7 @@ import 'package:wifi_scan_desktop/wifi_info.dart';
 import 'package:wifi_scan_desktop/wifi_scan_desktop_platform_interface.dart';
 
 class WifiScanDesktop {
-  // This will parse the scanner results to WifiInfo Model
+  /// This will parse the scanner results to WifiInfo Model
   Future<List<WifiInfo>?> getAvailableNetworks() async {
     try {
       String? nativeResult =
@@ -38,7 +38,7 @@ class WifiScanDesktop {
     }
   }
 
-  // Used to perform a new scan
+  /// Used to perform a new scan
   void performScan(
       Function(dynamic) onScanCompleted, Function(dynamic) onScanError) {
     try {

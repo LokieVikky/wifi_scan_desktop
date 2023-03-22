@@ -24,3 +24,7 @@
 
 - **BUGFIX**: Fixed Cmake Error in Windows
 
+## 0.0.7
+
+- **BUGFIX**: Fixed Invalid Redeclaration error on macos
+

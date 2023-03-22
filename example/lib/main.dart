@@ -50,7 +50,7 @@ class _MyAppState extends State<MyApp> {
                 itemBuilder: (context, index) {
                   return ListTile(
                     title: Text('SSID: ${availableNetworks[index].ssid}'),
-                    subtitle: Text('RSSI: ${availableNetworks[index].rssi}'),
+                    subtitle: Text('Channel Number: ${availableNetworks[index].channelNo}'),
                   );
                 },
               ),

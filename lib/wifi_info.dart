@@ -18,6 +18,8 @@ class WifiInfo {
   final String? ssid;
   /// true if security is enabled
   final bool? securityEnabled;
+  /// Channel number of the network
+  final int? channelNo;
   /// Ranges from 0 to 100
   final int? signalQuality;
 
@@ -34,5 +36,6 @@ class WifiInfo {
       this.rssi,
       this.ssid,
       this.securityEnabled,
+      this.channelNo,
       this.signalQuality);
 }

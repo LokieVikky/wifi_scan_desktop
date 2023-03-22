@@ -7,8 +7,7 @@ class WifiScanDesktop {
   /// This will parse the scanner results to WifiInfo Model
   Future<List<WifiInfo>?> getAvailableNetworks() async {
     try {
-      String? nativeResult =
-          await WifiScanDesktopPlatform.instance.getAvailableNetworks();
+      String? nativeResult = await WifiScanDesktopPlatform.instance.getAvailableNetworks();
       if (nativeResult == null) {
         throw Exception("Unknown error occurred");
       }
@@ -30,6 +29,7 @@ class WifiScanDesktop {
                 int.tryParse(e['RSSI'] ?? ''),
                 e['SSID'],
                 e['SecurityEnabled'] == "Yes",
+                int.tryParse(e['ChannelNumber'] ?? ''),
                 int.tryParse(e['SignalQuality'] ?? ''),
               ))
           .toList();
@@ -39,11 +39,9 @@ class WifiScanDesktop {
   }
 
   /// Used to perform a new scan
-  void performScan(
-      Function(dynamic) onScanCompleted, Function(dynamic) onScanError) {
+  void performScan(Function(dynamic) onScanCompleted, Function(dynamic) onScanError) {
     try {
-      WifiScanDesktopPlatform.instance
-          .performScan(onScanCompleted, onScanError);
+      WifiScanDesktopPlatform.instance.performScan(onScanCompleted, onScanError);
     } catch (e) {
       rethrow;
     }

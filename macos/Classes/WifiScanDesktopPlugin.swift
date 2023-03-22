@@ -144,7 +144,9 @@ struct WiFiInfo: Codable {
     var SSID: String?
     var BSSID: String?
     var SecurityEnabled: String?
+    var ChannelNumber: String?
     var SignalQuality: String?
+    
     
     init(network: CWNetwork) {
         self.AuthAlgorithm = gen_security(network: network)
@@ -159,12 +161,18 @@ struct WiFiInfo: Codable {
         self.SSID = network.ssid
         self.BSSID = network.bssid
         self.SecurityEnabled = (gen_security(network: network).contains("None")==true) ? "No" : "Yes"
-        self.SignalQuality = nil
+        self.SignalQuality = String(gen_signal_quality(network: network))
+        self.ChannelNumber = String(network.wlanChannel?.channelNumber ?? 0)
     }
     
     
 }
 
+func gen_signal_quality(network: CWNetwork) -> Double{
+    let ipol = LinearInterpolation(x: [-100,-50], y:[0,100] )
+    var signalQuality:Double = ipol.Interpolate(t: Double(network.rssiValue));
+    return signalQuality;
+}
 
 func gen_channel_bandwidth (cw_channel_width: CWChannelWidth?) -> String {
     if cw_channel_width == CWChannelWidth.width20MHz {
@@ -256,6 +264,30 @@ func gen_security (network: CWNetwork) -> String {
     }
     
     return res
+}
+
+class LinearInterpolation {
+
+    private var n : Int
+    private var x : [Double]
+    private var y : [Double]
+    init (x: [Double], y: [Double]) {
+        assert(x.count == y.count)
+        self.n = x.count-1
+        self.x = x
+        self.y = y
+    }
+    
+    func Interpolate(t: Double) -> Double {
+        if t <= x[0] { return y[0] }
+        for i in 1...n {
+            if t <= x[i] {
+                let ans = (t-x[i-1]) * (y[i] - y[i-1]) / (x[i]-x[i-1]) + y[i-1]
+                return ans
+            }
+        }
+        return y[n]
+    }
 }
 
 

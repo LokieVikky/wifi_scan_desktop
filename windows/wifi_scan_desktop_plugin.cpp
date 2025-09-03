@@ -340,7 +340,7 @@ void WifiScanDesktopPlugin::HandleMethodCall(
                 scan();
                 result->Success();
             }
-            catch (string error)
+            catch (const char* error)
             {
                 result->Error(error);
             }
@@ -352,7 +352,7 @@ void WifiScanDesktopPlugin::HandleMethodCall(
                 string available_networks = getAvailableNetworks();
                 result->Success(available_networks);
             }
-            catch (string error)
+            catch (const char* error)
             {
                 result->Error(error);
             }

@@ -18,19 +18,22 @@ class WifiScanDesktop {
 
       return (scanResultJson as List)
           .map((e) => WifiInfo(
-                e['AuthAlgorithm'],
-                e['BSSNetworkType'],
-                e['Connectable'] == "Yes",
-                e['DefaultCipherAlgorithm'],
-                e['Flags'],
-                int.tryParse(e['NumberOfBSSID'] ?? ''),
-                int.tryParse(e['NumberOfPHYTypesSupported'] ?? ''),
-                e['ProfileName'],
-                int.tryParse(e['RSSI'] ?? ''),
-                e['SSID'],
-                e['SecurityEnabled'] == "Yes",
-                int.tryParse(e['ChannelNumber'] ?? ''),
-                int.tryParse(e['SignalQuality'] ?? ''),
+                authAlgorithm: e['AuthAlgorithm'],
+                bssNetworkType: e['BSSNetworkType'],
+                connectable: e['Connectable'] == "Yes",
+                defaultCipherAlgorithm: e['DefaultCipherAlgorithm'],
+                flags: e['Flags'],
+                numberOfBssid: int.tryParse(e['NumberOfBSSID'] ?? ''),
+                numberOfPhyTypesSupported: int.tryParse(e['NumberOfPHYTypesSupported'] ?? ''),
+                bssPhyType: e['BssPhyType'],
+                profileName: e['ProfileName'],
+                rssi: int.tryParse(e['RSSI'] ?? ''),
+                ssid: e['SSID'],
+                bssid: e['BSSID'],
+                securityEnabled: e['SecurityEnabled'] == "Yes",
+                channelNo: int.tryParse(e['ChannelNumber'] ?? ''),
+                frequency: int.tryParse(e['Frequency'] ?? ''),
+                signalQuality: int.tryParse(e['SignalQuality'] ?? ''),
               ))
           .toList();
     } catch (e) {

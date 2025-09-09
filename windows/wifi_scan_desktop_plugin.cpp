@@ -33,38 +33,28 @@ using json = nlohmann::json;
 using namespace std;
 #pragma comment(lib, "Wlanapi.lib")
 
-HANDLE hClient = NULL;
 DWORD dwMaxClient = 2; //
 DWORD dwCurVersion = 0;
-PWLAN_INTERFACE_INFO_LIST pIfList = NULL;
-PWLAN_AVAILABLE_NETWORK_LIST pBssList = NULL;
-PWLAN_AVAILABLE_NETWORK pBssEntry = NULL;
-PWLAN_INTERFACE_INFO pIfInfo = NULL;
-int iRSSI = 0;
 std::unique_ptr<flutter::EventSink<>> event_sink_;
 
 namespace wifi_scan_desktop {
     // Scan Callback
     void FuncWlanAcmNotify(PWLAN_NOTIFICATION_DATA data, PVOID context)
     {
+        bool& scanning = *(bool*)context;
         if (data->NotificationCode == wlan_notification_acm_scan_complete)
         {
             event_sink_->Success("Scan Success");
+            scanning = false;
         }
 
         if (data->NotificationCode == wlan_notification_acm_scan_fail)
         {
             event_sink_->Error("Scan Error");
+            scanning = false;
         }
-        WlanRegisterNotification(hClient,
-                                 WLAN_NOTIFICATION_SOURCE_NONE,
-                                 TRUE,
-                                 NULL,
-                                 NULL,
-                                 NULL,
-                                 NULL);
-		WlanCloseHandle(hClient,NULL);
-		WlanFreeMemory(pIfList);
+        // https://learn.microsoft.com/en-us/windows/win32/api/wlanapi/nf-wlanapi-wlanregisternotification#remarks
+        // Don't call WlanRegisterNotification from a callback function, a deadlock may occur.
     }
 
     // Converts wchar to string
@@ -76,9 +66,42 @@ namespace wifi_scan_desktop {
         return mystring;
     }
 
+    // https://github.com/torvalds/linux/blob/master/net/wireless/util.c#L141
+    int ieee80211_freq_khz_to_channel(ULONG freq)
+    {
+        // freq = KHZ_TO_MHZ(freq);
+        freq = freq / 1000;
+
+        /* see 802.11 17.3.8.3.2 and Annex J */
+        if (freq == 2484)
+            return 14;
+        else if (freq < 2484)
+            return (freq - 2407) / 5;
+        else if (freq >= 4910 && freq <= 4980)
+            return (freq - 4000) / 5;
+        else if (freq < 5925)
+            return (freq - 5000) / 5;
+        else if (freq == 5935)
+            return 2;
+        else if (freq <= 45000) /* DMG band lower limit */
+            /* see 802.11ax D6.1 27.3.22.2 */
+            return (freq - 5950) / 5;
+        else if (freq >= 58320 && freq <= 70200)
+            return (freq - 56160) / 2160;
+        else
+            return 0;
+    }
+
     // Return Cached Networks
+    // TODO throw may prevent free memory
     string getAvailableNetworks()
     {
+        HANDLE hClient = NULL;
+        PWLAN_INTERFACE_INFO_LIST pIfList = NULL;
+        PWLAN_BSS_LIST pBssList = NULL;
+        PWLAN_BSS_ENTRY pBssEntry = NULL;
+        PWLAN_INTERFACE_INFO pIfInfo = NULL;
+
         DWORD dw = WlanOpenHandle(dwMaxClient, NULL, &dwCurVersion, &hClient);
         if (dw != ERROR_SUCCESS)
         {
@@ -98,24 +121,20 @@ namespace wifi_scan_desktop {
             throw "Error: WlanEnumInterfacesEmpty " + dw1;
         }
 
-        DWORD dw4 = WlanGetAvailableNetworkList(hClient, &pIfInfo->InterfaceGuid, WLAN_AVAILABLE_NETWORK_INCLUDE_ALL_ADHOC_PROFILES, NULL, &pBssList);
+        DWORD dw4 = WlanGetNetworkBssList(hClient, &pIfInfo->InterfaceGuid, NULL, dot11_BSS_type_any, TRUE, NULL, &pBssList);
         if (dw4 != ERROR_SUCCESS)
         {
-            throw "Error: WlanGetAvailableNetworkList Failed " + dw4;
+            throw "Error: WlanGetNetworkBssList Failed " + dw4;
         }
 
         json network_list = json::array();
+
         for (unsigned int j = 0; j < pBssList->dwNumberOfItems; j++)
         {
-            pBssEntry =
-                (WLAN_AVAILABLE_NETWORK *)&pBssList->Network[j];
+            pBssEntry = 
+                (WLAN_BSS_ENTRY *)&pBssList->wlanBssEntries[j];
 
             json values;
-
-            // ProfileName
-            // wstring ws(pBssEntry->strProfileName);
-            // string str(ws.begin(), ws.end());
-            values["ProfileName"] = wchar2string(pBssEntry->strProfileName);
 
             // SSID
             if (pBssEntry->dot11Ssid.uSSIDLength == 0)
@@ -132,106 +151,103 @@ namespace wifi_scan_desktop {
                 values["SSID"] = ssid;
             }
 
+            // BSSID
+            char bssid[18];
+            sprintf_s(bssid, "%02x:%02x:%02x:%02x:%02x:%02x",
+                pBssEntry->dot11Bssid[0],
+                pBssEntry->dot11Bssid[1],
+                pBssEntry->dot11Bssid[2],
+                pBssEntry->dot11Bssid[3],
+                pBssEntry->dot11Bssid[4],
+                pBssEntry->dot11Bssid[5]);
+            values["BSSID"] = bssid;
+
             // BSSNetworkType
             values["BSSNetworkType"] = to_string(pBssEntry->dot11BssType);
 
-            // NumberOfBSSID
-            values["NumberOfBSSID"] = to_string(pBssEntry->uNumberOfBssids);
-
-            // Connectable
-            if (pBssEntry->bNetworkConnectable)
-                values["Connectable"] = "Yes";
-            else
+            // BssPhyType
+            string bssPhyType;
+            switch (pBssEntry->dot11BssPhyType)
             {
-                values["Connectable"] = "NO";
+                case 4:
+                    bssPhyType = "a";
+                    break;
+                case 5:
+                    bssPhyType = "b";
+                    break;
+                case 6:
+                    bssPhyType = "g";
+                    break;
+                case 7:
+                    bssPhyType = "n";
+                    break;
+                case 8:
+                    bssPhyType = "ac";
+                    break;
+                case 9:
+                    bssPhyType = "ad";
+                    break;
+                case 10:
+                    bssPhyType = "ax";
+                    break;
+                case 11:
+                    bssPhyType = "be";
+                    break;
+                default:
+                    bssPhyType = "unknown";
+                    break;
             }
-
-            // NumberOfPHYTypesSupported
-            values["NumberOfPHYTypesSupported"] = to_string(pBssEntry->uNumberOfPhyTypes);
+            values["BssPhyType"] = bssPhyType;
 
             // RSSI
-            if (pBssEntry->wlanSignalQuality == 0)
-                iRSSI = -100;
-            else if (pBssEntry->wlanSignalQuality == 100)
-                iRSSI = -50;
-            else
-                iRSSI = -100 + (pBssEntry->wlanSignalQuality / 2);
-
-            values["RSSI"] = to_string(iRSSI);
+            LONG rssi = pBssEntry->lRssi;
+            values["RSSI"] = to_string(pBssEntry->lRssi);
 
             // Signal Quality
-            values["SignalQuality"] = to_string(pBssEntry->wlanSignalQuality);
+            int quality;
+            if (rssi <= -100)
+            {
+                quality = 0;
+            }
+            else if (rssi >= -50)
+            {
+                quality = 100;
+            }
+            else
+            {
+                quality = 2 * (rssi + 100);
+            }
+            values["SignalQuality"] = to_string(quality);
+
+            // Frequency MHz
+            ULONG frequencyKhz = pBssEntry->ulChCenterFrequency;
+            values["Frequency"] = to_string(frequencyKhz / 1000);
+
+            // ChannelNumber
+            values["ChannelNumber"] = to_string(ieee80211_freq_khz_to_channel(frequencyKhz));
 
             // Security Enabled
-            if (pBssEntry->bSecurityEnabled)
+            if ((pBssEntry->usCapabilityInformation & (1 << 4)) != 0)
                 values["SecurityEnabled"] = "Yes";
             else
                 values["SecurityEnabled"] = "No";
 
-            // AuthAlgorithm
-            switch (pBssEntry->dot11DefaultAuthAlgorithm)
-            {
-            case DOT11_AUTH_ALGO_80211_OPEN:
-                values["AuthAlgorithm"] = "802.11 Open";
-                break;
-            case DOT11_AUTH_ALGO_80211_SHARED_KEY:
-                values["AuthAlgorithm"] = "802.11 Shared";
-                break;
-            case DOT11_AUTH_ALGO_WPA:
-                values["AuthAlgorithm"] = "WPA";
-                break;
-            case DOT11_AUTH_ALGO_WPA_PSK:
-                values["AuthAlgorithm"] = "WPA-PSK";
-                break;
-            case DOT11_AUTH_ALGO_WPA_NONE:
-                values["AuthAlgorithm"] = "WPA-None";
-                break;
-            case DOT11_AUTH_ALGO_RSNA:
-                values["AuthAlgorithm"] = "RSNA";
-                break;
-            case DOT11_AUTH_ALGO_RSNA_PSK:
-                values["AuthAlgorithm"] = "RSNA with PSK";
-                break;
-            default:
-                values["AuthAlgorithm"] = "Other";
-                break;
-            }
-
-            // DefaultCipherAlgorithm
-            switch (pBssEntry->dot11DefaultCipherAlgorithm)
-            {
-            case DOT11_CIPHER_ALGO_NONE:
-                values["DefaultCipherAlgorithm"] = "None";
-                break;
-            case DOT11_CIPHER_ALGO_WEP40:
-                values["DefaultCipherAlgorithm"] = "WEP-40";
-                break;
-            case DOT11_CIPHER_ALGO_TKIP:
-                values["DefaultCipherAlgorithm"] = "TKIP";
-                break;
-            case DOT11_CIPHER_ALGO_CCMP:
-                values["DefaultCipherAlgorithm"] = "CCMP";
-                break;
-            case DOT11_CIPHER_ALGO_WEP104:
-                values["DefaultCipherAlgorithm"] = "WEP-104";
-                break;
-            case DOT11_CIPHER_ALGO_WEP:
-                values["DefaultCipherAlgorithm"] = "WEP";
-                break;
-            default:
-                values["DefaultCipherAlgorithm"] = "Other";
-                break;
-            }
-
-            // Flags
-            if (pBssEntry->dwFlags)
-            {
-                if (pBssEntry->dwFlags & WLAN_AVAILABLE_NETWORK_CONNECTED)
-                    values["Flags"] = to_string(pBssEntry->dwFlags) + " - Currenlty connected";
-                if (pBssEntry->dwFlags & WLAN_AVAILABLE_NETWORK_HAS_PROFILE)
-                    values["Flags"] = to_string(pBssEntry->dwFlags) + " - Has profile";
-            }
             network_list.push_back(values);
+        }
+
+        if (pIfList != NULL) {
+            WlanFreeMemory(pIfList);
+            pIfList = NULL;
+        }
+
+        if (pBssList != NULL) {
+            WlanFreeMemory(pBssList);
+            pBssList = NULL;
+        }
+
+        if (hClient != NULL) {
+            WlanCloseHandle(hClient, NULL);
+            hClient = NULL;
         }
 
         return network_list.dump();
@@ -240,6 +256,10 @@ namespace wifi_scan_desktop {
     // Calling this will perform a new scan
     void scan()
     {
+        HANDLE hClient = NULL;
+        PWLAN_INTERFACE_INFO_LIST pIfList = NULL;
+        PWLAN_INTERFACE_INFO pIfInfo = NULL;
+
         DWORD dw = WlanOpenHandle(dwMaxClient, NULL, &dwCurVersion, &hClient);
         if (dw != ERROR_SUCCESS)
         {
@@ -259,11 +279,18 @@ namespace wifi_scan_desktop {
             throw "Error: WlanEnumInterfacesEmpty " + dw1;
         }
 
+        if (pIfList != NULL) {
+            WlanFreeMemory(pIfList);
+            pIfList = NULL;
+        }
+
+        bool scanning = true;
+
         DWORD hResult = WlanRegisterNotification(hClient,
                                                  WLAN_NOTIFICATION_SOURCE_ACM,
                                                  FALSE,
                                                  (WLAN_NOTIFICATION_CALLBACK)FuncWlanAcmNotify,
-                                                 NULL,
+                                                 &scanning,
                                                  NULL,
                                                  NULL);
         if (hResult != ERROR_SUCCESS)
@@ -276,6 +303,20 @@ namespace wifi_scan_desktop {
         {
             throw "Error: WlanScan Failed " + dw3;
         }
+
+        // TODO stop if timeout?
+        while (scanning) {
+            Sleep(100);
+        }
+
+        WlanRegisterNotification(hClient,
+            WLAN_NOTIFICATION_SOURCE_NONE,
+            FALSE,
+            NULL,
+            NULL,
+            NULL,
+            NULL);
+        WlanCloseHandle(hClient, NULL);
     }
 
 // static
@@ -340,7 +381,7 @@ void WifiScanDesktopPlugin::HandleMethodCall(
                 scan();
                 result->Success();
             }
-            catch (string error)
+            catch (const char* error)
             {
                 result->Error(error);
             }
@@ -352,7 +393,7 @@ void WifiScanDesktopPlugin::HandleMethodCall(
                 string available_networks = getAvailableNetworks();
                 result->Success(available_networks);
             }
-            catch (string error)
+            catch (const char* error)
             {
                 result->Error(error);
             }

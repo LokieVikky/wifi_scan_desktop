@@ -11,6 +11,7 @@ import CoreLocation
 class LocationManager: NSObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     private var completionHandler: ((String) -> Void)?
+    private var hasCalledCompletion = false
 
     override init() {
         super.init()
@@ -19,24 +20,69 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
 
     func requestAuthorization(completion: @escaping (String) -> Void) {
         self.completionHandler = completion
-        manager.requestWhenInUseAuthorization()
+        self.hasCalledCompletion = false
+        
+        let currentStatus = getCurrentStatus()
+        
+        // If already determined, return the status immediately
+        if currentStatus != .notDetermined {
+            let result = authorizationStatusToString(currentStatus)
+            callCompletionOnce(result)
+            return
+        }
+        
+        // Request permission and activate location updates
+        // This is necessary on macOS for the prompt to appear
+        manager.requestAlwaysAuthorization()
+        manager.startUpdatingLocation()
     }
-
+    
+    private func callCompletionOnce(_ result: String) {
+        guard !hasCalledCompletion, let handler = completionHandler else {
+            return
+        }
+        
+        hasCalledCompletion = true
+        handler(result)
+        completionHandler = nil
+        manager.stopUpdatingLocation()
+    }
+    
+    private func getCurrentStatus() -> CLAuthorizationStatus {
+        if #available(macOS 11.0, *) {
+            return manager.authorizationStatus
+        } else {
+            return CLLocationManager.authorizationStatus()
+        }
+    }
+    
+    // Method for macOS 11+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        let status = getCurrentStatus()
+        if status != .notDetermined {
+            let result = authorizationStatusToString(status)
+            callCompletionOnce(result)
+        }
+    }
+    
+    // Method for earlier macOS versions
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        var result: String
-
+        if status != .notDetermined {
+            let result = authorizationStatusToString(status)
+            callCompletionOnce(result)
+        }
+    }
+    
+    private func authorizationStatusToString(_ status: CLAuthorizationStatus) -> String {
         switch status {
         case .authorizedAlways, .authorizedWhenInUse:
-            result = "granted"
+            return "granted"
         case .denied, .restricted:
-            result = "denied"
+            return "denied"
         case .notDetermined:
-            result = "notDetermined"
+            return "notDetermined"
         @unknown default:
-            result = "unknown"
+            return "unknown"
         }
-
-        completionHandler?(result)
-        completionHandler = nil
     }
 }

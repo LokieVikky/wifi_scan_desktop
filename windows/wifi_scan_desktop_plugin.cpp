@@ -208,8 +208,11 @@ namespace wifi_scan_desktop {
             values["BSSNetworkType"] = to_string(pBssEntry->dot11BssType);
 
             // BssPhyType
+            // Cast to int to handle future PHY types that may not be in the enum yet
+            int phyTypeValue = static_cast<int>(pBssEntry->dot11BssPhyType);
             string bssPhyType;
-            switch (pBssEntry->dot11BssPhyType)
+            
+            switch (phyTypeValue)
             {
                 case 4:
                     bssPhyType = "a";

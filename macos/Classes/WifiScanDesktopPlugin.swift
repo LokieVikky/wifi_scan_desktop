@@ -12,6 +12,8 @@ public class WifiScanDesktopPlugin: NSObject, FlutterPlugin {
     init(scanHandler: WifiScanStreamHandler) {
         self.scanHandler = scanHandler
         super.init()
+        // Create the LocationManager once when initializing the plugin
+        self.locationManager = LocationManager()
     }
 
     // Event and Method Channels are registered here
@@ -44,10 +46,8 @@ public class WifiScanDesktopPlugin: NSObject, FlutterPlugin {
             }
 
         case "requestLocationPermission":
-            self.locationManager = LocationManager()
             self.locationManager?.requestAuthorization { status in
                 result(status)
-                self.locationManager = nil
             }
         default:
             result(FlutterMethodNotImplemented)
